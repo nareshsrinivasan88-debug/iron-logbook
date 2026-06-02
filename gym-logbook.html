@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iron Log — Workout Logbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0c0c0c;
+  --s1: #141414;
+  --s2: #1c1c1c;
+  --s3: #242424;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f0f0;
+  --muted: #666;
+  --muted2: #999;
+  --gold: #f5c842;
+  --gold2: #e8a020;
+  --red: #ff3b3b;
+  --green: #00d68f;
+  --blue: #4dabf7;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+/* ─── LOGIN SCREEN ─── */
+#loginScreen {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:20px;
+  position:relative;
+  z-index:1;
+}
+.login-card {
+  background:var(--s1);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:40px 32px;
+  width:100%;
+  max-width:380px;
+  text-align:center;
+}
+.login-logo {
+  font-family:'Black Ops One',cursive;
+  font-size:2.6rem;
+  color:var(--gold);
+  letter-spacing:3px;
+  text-shadow:0 0 40px rgba(245,200,66,0.4);
+  margin-bottom:4px;
+}
+.login-tagline {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:4px;
+  color:var(--muted2);
+  text-transform:uppercase;
+  margin-bottom:32px;
+}
+.login-divider {
+  font-size:0.75rem;
+  color:var(--muted);
+  margin-bottom:20px;
+}
+
+/* Email/Password form */
+.login-input {
+  width:100%;
+  background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:12px 14px;
+  color:var(--text);
+  font-family:'Barlow',sans-serif;
+  font-size:0.9rem;
+  outline:none;
+  margin-bottom:10px;
+  transition:border-color 0.2s;
+}
+.login-input:focus { border-color:var(--gold); }
+.login-input::placeholder { color:var(--muted); }
+
+.google-btn {
+  width:100%;
+  padding:13px 20px;
+  background:#fff;
+  border:none;
+  border-radius:12px;
+  color:#1f1f1f;
+  font-family:'Barlow',sans-serif;
+  font-weight:600;
+  font-size:0.9rem;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  transition:all 0.2s;
+  margin-bottom:12px;
+}
+.google-btn:hover { background:#f0f0f0; transform:translateY(-1px); }
+
+.email-btn {
+  width:100%;
+  padding:13px;
+  background:var(--gold);
+  border:none;
+  border-radius:12px;
+  color:#000;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  font-size:0.9rem;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all 0.2s;
+  margin-bottom:8px;
+}
+.email-btn:hover { background:var(--gold2); }
+.email-btn.secondary {
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--muted2);
+}
+.email-btn.secondary:hover { background:var(--s2); color:var(--text); }
+
+.login-error {
+  color:var(--red);
+  font-size:0.8rem;
+  margin-bottom:10px;
+  min-height:18px;
+}
+
+/* ─── LOADING OVERLAY ─── */
+#loadingOverlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(12,12,12,0.85);
+  z-index:999;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+}
+#loadingOverlay.show { display:flex; }
+.spinner {
+  width:36px;
+  height:36px;
+  border:3px solid var(--border2);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-text {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.8rem;
+  letter-spacing:2px;
+  color:var(--muted2);
+  text-transform:uppercase;
+}
+
+/* ─── MAIN APP ─── */
+.wrap{max-width:520px;margin:0 auto;padding:0 14px 80px;position:relative;z-index:1;}
+
+/* HEADER */
+.app-header{padding:28px 0 20px;border-bottom:1px solid var(--border2);margin-bottom:20px;}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;}
+.logo-block .logo{font-family:'Black Ops One',cursive;font-size:2.2rem;letter-spacing:2px;color:var(--gold);line-height:1;text-shadow:0 0 40px rgba(245,200,66,0.3);}
+.logo-block .tagline{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;letter-spacing:4px;color:var(--muted2);text-transform:uppercase;margin-top:2px;}
+.header-stats{display:flex;gap:12px;}
+.hstat{text-align:center;}
+.hstat-val{font-family:'Black Ops One',cursive;font-size:1.4rem;color:var(--gold);}
+.hstat-label{font-size:0.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+
+/* User bar */
+.user-bar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 14px;
+  background:var(--s1);
+  border-radius:10px;
+  margin-bottom:14px;
+  border:1px solid var(--border);
+}
+.user-info { display:flex;align-items:center;gap:8px; }
+.user-avatar {
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Black Ops One',cursive;
+  font-size:0.75rem;
+  color:#000;
+}
+.user-avatar img { width:100%;height:100%;border-radius:50%;object-fit:cover; }
+.user-name { font-size:0.82rem;color:var(--muted2); }
+.signout-btn {
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:7px;
+  padding:5px 10px;
+  color:var(--muted);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.72rem;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.signout-btn:hover { color:var(--red);border-color:rgba(255,59,59,0.4); }
+
+/* TABS */
+.nav-tabs{display:flex;background:var(--s1);border-radius:12px;padding:4px;gap:4px;margin-bottom:20px;border:1px solid var(--border);}
+.tab-btn{flex:1;padding:9px 6px;border:none;background:transparent;color:var(--muted2);font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-radius:9px;transition:all 0.2s;}
+.tab-btn.active{background:var(--gold);color:#000;}
+.tab-btn:hover:not(.active){color:var(--text);}
+
+/* VIEWS */
+.view{display:none;}
+.view.active{display:block;animation:fadeUp 0.3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* TODAY VIEW */
+.today-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.today-day{font-family:'Black Ops One',cursive;font-size:1.6rem;color:var(--gold);}
+.today-date{font-size:0.8rem;color:var(--muted2);margin-top:2px;}
+.day-badge{font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:6px 14px;border-radius:20px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.3);color:var(--gold);}
+
+/* Session type */
+.session-select{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.sess-btn{background:var(--s1);border:1.5px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.2s;user-select:none;}
+.sess-btn:hover{border-color:var(--border2);}
+.sess-btn.active{border-color:var(--gold);background:rgba(245,200,66,0.08);}
+.sess-icon{font-size:1.4rem;margin-bottom:4px;}
+.sess-label{font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
+.sess-btn.active .sess-label{color:var(--gold);}
+
+/* Exercise cards */
+.exercises-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.ex-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color 0.2s;}
+.ex-card:hover{border-color:var(--border2);}
+.ex-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.ex-name-wrap{display:flex;align-items:center;gap:10px;}
+.ex-num{font-family:'Black Ops One',cursive;font-size:0.9rem;color:var(--muted);width:20px;}
+.ex-name{font-size:0.95rem;font-weight:600;color:var(--text);}
+.ex-muscle{font-size:0.72rem;color:var(--muted2);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+.ex-actions{display:flex;gap:6px;}
+.ex-btn{background:var(--s2);border:none;border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;color:var(--muted2);transition:all 0.2s;}
+.ex-btn:hover{color:var(--text);}
+.ex-btn.del:hover{color:var(--red);background:rgba(255,59,59,0.1);}
+
+/* Sets table */
+.sets-wrap{padding:10px 14px;}
+.sets-table{width:100%;border-collapse:collapse;}
+.sets-table th{font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:4px 8px 8px;text-align:center;}
+.sets-table th:first-child{text-align:left;}
+.set-row td{padding:4px 4px;}
+.set-num{font-family:'Black Ops One',cursive;font-size:0.85rem;color:var(--muted);text-align:left;padding-left:4px !important;vertical-align:middle;}
+.set-input{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:7px 6px;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.9rem;font-weight:500;width:100%;text-align:center;outline:none;transition:border-color 0.2s;}
+.set-input:focus{border-color:var(--gold);}
+.set-input::placeholder{color:var(--muted);}
+.set-done-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.85rem;color:var(--muted);transition:all 0.2s;margin:0 auto;}
+.set-done-btn.done{background:rgba(0,214,143,0.15);border-color:var(--green);color:var(--green);}
+.set-row.completed td .set-input{border-color:rgba(0,214,143,0.3);background:rgba(0,214,143,0.05);}
+.add-set-btn{width:100%;margin-top:8px;padding:8px;background:transparent;border:1px dashed var(--border2);border-radius:8px;color:var(--muted2);font-family:'Barlow',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+.add-set-btn:hover{border-color:var(--gold);color:var(--gold);}
+.del-set-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:4px;transition:color 0.2s;}
+.del-set-btn:hover{color:var(--red);}
+
+/* Add exercise */
+.add-ex-wrap{background:var(--s1);border:1.5px dashed var(--border2);border-radius:14px;padding:16px;margin-bottom:16px;}
+.add-ex-title{font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;}
+.add-ex-row{display:flex;gap:8px;margin-bottom:8px;}
+.add-ex-input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s;}
+.add-ex-input:focus{border-color:var(--gold);}
+.add-ex-input::placeholder{color:var(--muted);}
+.add-ex-btn{padding:10px 18px;background:var(--gold);border:none;border-radius:10px;color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.add-ex-btn:hover{background:var(--gold2);}
+
+/* Notes */
+.notes-wrap{margin-bottom:16px;}
+.notes-label{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.notes-input{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.88rem;resize:none;outline:none;transition:border-color 0.2s;min-height:70px;}
+.notes-input:focus{border-color:var(--gold);}
+.notes-input::placeholder{color:var(--muted);}
+
+/* Save session */
+.save-session-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;color:#000;font-family:'Black Ops One',cursive;font-size:1rem;letter-spacing:2px;cursor:pointer;transition:all 0.3s;text-transform:uppercase;}
+.save-session-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,200,66,0.3);}
+
+/* HISTORY */
+.history-empty{text-align:center;padding:48px 20px;color:var(--muted);}
+.history-empty .em-icon{font-size:3rem;margin-bottom:12px;}
+.history-empty p{font-size:0.88rem;line-height:1.6;}
+.log-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;transition:border-color 0.2s;}
+.log-card:hover{border-color:var(--border2);}
+.log-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;}
+.log-left .log-date{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.log-left .log-day{font-family:'Black Ops One',cursive;font-size:1.1rem;color:var(--text);margin-top:2px;}
+.log-right{display:flex;align-items:center;gap:8px;}
+.log-type-badge{font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:20px;}
+.badge-push{background:rgba(255,77,77,0.12);border:1px solid rgba(255,77,77,0.3);color:#ff6b6b;}
+.badge-pull{background:rgba(77,171,247,0.12);border:1px solid rgba(77,171,247,0.3);color:var(--blue);}
+.badge-legs{background:rgba(0,214,143,0.12);border:1px solid rgba(0,214,143,0.3);color:var(--green);}
+.badge-custom{background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.3);color:var(--gold);}
+.log-meta{display:flex;gap:16px;padding:10px 16px;border-bottom:1px solid var(--border);}
+.log-meta-item{font-size:0.78rem;color:var(--muted2);}
+.log-meta-item span{color:var(--gold);font-weight:600;}
+.log-exercises{padding:12px 16px;display:none;}
+.log-exercises.open{display:block;}
+.log-ex-row{display:flex;align-items:flex-start;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.log-ex-row:last-child{border-bottom:none;}
+.log-ex-name{font-size:0.88rem;font-weight:600;color:var(--text);}
+.log-ex-muscle{font-size:0.72rem;color:var(--muted2);margin-top:1px;}
+.log-sets-summary{text-align:right;}
+.log-set-line{font-size:0.78rem;color:var(--muted2);margin-bottom:2px;}
+.log-set-line span{color:var(--text);font-weight:500;}
+.log-notes-display{font-size:0.8rem;color:var(--muted2);font-style:italic;padding:8px 0 0;}
+.log-del-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;padding:4px;transition:color 0.2s;align-self:center;}
+.log-del-btn:hover{color:var(--red);}
+
+/* PROGRESS */
+.progress-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.prog-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.prog-card-full{grid-column:1/-1;}
+.prog-label{font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.prog-val{font-family:'Black Ops One',cursive;font-size:1.8rem;color:var(--gold);}
+.prog-sub{font-size:0.75rem;color:var(--muted2);margin-top:2px;}
+.prog-bar-wrap{margin-top:8px;}
+.prog-bar-bg{height:5px;background:var(--s3);border-radius:5px;overflow:hidden;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:5px;transition:width 0.6s ease;}
+.pr-list{display:flex;flex-direction:column;gap:8px;}
+.pr-item{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:10px;padding:10px 12px;}
+.pr-name{font-size:0.88rem;font-weight:500;}
+.pr-val{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--gold);}
+.week-chart{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:8px;}
+.week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.week-bar{width:100%;background:var(--s3);border-radius:4px 4px 0 0;transition:height 0.5s ease,background 0.2s;}
+.week-bar.active{background:linear-gradient(180deg,var(--gold),var(--gold2));}
+.week-day-label{font-size:0.62rem;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
+.week-val-label{font-size:0.65rem;color:var(--muted2);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;align-items:flex-end;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:20px 20px 16px 16px;padding:24px;width:100%;max-width:440px;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-title{font-family:'Black Ops One',cursive;font-size:1.2rem;letter-spacing:2px;color:var(--gold);margin-bottom:16px;}
+.modal-input{width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.92rem;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+.modal-input:focus{border-color:var(--gold);}
+.modal-row{display:flex;gap:8px;margin-top:4px;}
+.modal-cancel{padding:12px 18px;border-radius:12px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-family:'Barlow',sans-serif;font-size:0.88rem;cursor:pointer;}
+.modal-save{flex:1;padding:12px;border-radius:12px;border:none;background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+.modal-save:hover{background:var(--gold2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.88rem;letter-spacing:1.5px;padding:12px 24px;border-radius:50px;z-index:600;transition:transform 0.3s ease;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* QUICK TEMPLATES */
+.quick-title{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.quick-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted2);font-size:0.78rem;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+.quick-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Sync indicator */
+.sync-dot {
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  display:inline-block;
+  margin-left:6px;
+  vertical-align:middle;
+}
+.sync-dot.syncing { background:var(--gold); animation:pulse 1s infinite; }
+.sync-dot.error { background:var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     LOGIN SCREEN — shown when user is not signed in
+     ═══════════════════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">IRON LOG</div>
+    <div class="login-tagline">Workout Logbook</div>
+
+    <!-- Google Sign-In button -->
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="login-divider">— or use email —</div>
+
+    <!-- Email/Password fields -->
+    <input class="login-input" id="loginEmail" type="email" placeholder="Email address">
+    <input class="login-input" id="loginPassword" type="password" placeholder="Password">
+    <div class="login-error" id="loginError"></div>
+
+    <button class="email-btn" onclick="signInWithEmail()">Sign In</button>
+    <button class="email-btn secondary" onclick="signUpWithEmail()">Create Account</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     LOADING OVERLAY — shown during async Firestore operations
+     ═══════════════════════════════════════════════════════════ -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Syncing…</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN APP — hidden until user is authenticated
+     ═══════════════════════════════════════════════════════════ -->
+<div id="mainApp" style="display:none;">
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="header-top">
+      <div class="logo-block">
+        <div class="logo">IRON LOG</div>
+        <div class="tagline">Workout Logbook</div>
+      </div>
+      <div class="header-stats">
+        <div class="hstat">
+          <div class="hstat-val" id="totalSessions">0</div>
+          <div class="hstat-label">Sessions</div>
+        </div>
+        <div class="hstat">
+          <div class="hstat-val" id="totalWeeks">0</div>
+          <div class="hstat-label">Weeks</div>
+        </div>
+        <div class="hstat">
+          <div class="hstat-val" id="totalPRs">0</div>
+          <div class="hstat-label">PRs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER BAR — shows who is logged in + sign out -->
+  <div class="user-bar">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div class="user-name" id="userName">Loading…</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="sync-dot" id="syncDot" title="Synced to Firestore"></span>
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('today',event)">📝 Log</button>
+    <button class="tab-btn" onclick="switchTab('history',event)">📅 History</button>
+    <button class="tab-btn" onclick="switchTab('progress',event)">📈 Progress</button>
+  </div>
+
+  <!-- TODAY VIEW -->
+  <div class="view active" id="view-today">
+    <div class="today-header">
+      <div>
+        <div class="today-day" id="todayDay">Monday</div>
+        <div class="today-date" id="todayDate">—</div>
+      </div>
+      <div class="day-badge" id="todayBadge">Day 1</div>
+    </div>
+
+    <div class="session-select">
+      <div class="sess-btn active" data-type="push" onclick="selectSession('push',this)"><div class="sess-icon">🔴</div><div class="sess-label">Push</div></div>
+      <div class="sess-btn" data-type="pull" onclick="selectSession('pull',this)"><div class="sess-icon">🔵</div><div class="sess-label">Pull</div></div>
+      <div class="sess-btn" data-type="legs" onclick="selectSession('legs',this)"><div class="sess-icon">🟢</div><div class="sess-label">Legs</div></div>
+      <div class="sess-btn" data-type="upper" onclick="selectSession('upper',this)"><div class="sess-icon">⚡</div><div class="sess-label">Upper</div></div>
+      <div class="sess-btn" data-type="lower" onclick="selectSession('lower',this)"><div class="sess-icon">🔥</div><div class="sess-label">Lower</div></div>
+      <div class="sess-btn" data-type="custom" onclick="selectSession('custom',this)"><div class="sess-icon">⭐</div><div class="sess-label">Custom</div></div>
+    </div>
+
+    <div class="quick-title">Quick Load Template</div>
+    <div class="quick-btns" id="quickBtns"></div>
+
+    <div class="exercises-list" id="exercisesList"></div>
+
+    <div class="add-ex-wrap">
+      <div class="add-ex-title">+ Add Exercise</div>
+      <div class="add-ex-row">
+        <input class="add-ex-input" id="newExName" placeholder="Exercise name (e.g. Bench Press)">
+        <input class="add-ex-input" id="newExMuscle" placeholder="Muscle" style="max-width:110px;">
+      </div>
+      <button class="add-ex-btn" onclick="addExercise()">Add ＋</button>
+    </div>
+
+    <div class="notes-wrap">
+      <div class="notes-label">Session Notes</div>
+      <textarea class="notes-input" id="sessionNotes" placeholder="How did you feel? PRs hit? Any injuries?"></textarea>
+    </div>
+
+    <button class="save-session-btn" onclick="saveSession()">💾 Save Session</button>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div class="view" id="view-history">
+    <div id="historyList"></div>
+  </div>
+
+  <!-- PROGRESS VIEW -->
+  <div class="view" id="view-progress">
+    <div class="progress-grid">
+      <div class="prog-card"><div class="prog-label">Total Sessions</div><div class="prog-val" id="pTotalSessions">0</div><div class="prog-sub">All time</div></div>
+      <div class="prog-card"><div class="prog-label">This Week</div><div class="prog-val" id="pWeekSessions">0</div><div class="prog-sub">Sessions logged</div></div>
+      <div class="prog-card"><div class="prog-label">Total Volume</div><div class="prog-val" id="pTotalVolume">0</div><div class="prog-sub">kg lifted all time</div></div>
+      <div class="prog-card"><div class="prog-label">Consistency</div><div class="prog-val" id="pConsistency">0%</div><div class="prog-sub">Last 4 weeks</div><div class="prog-bar-wrap"><div class="prog-bar-bg"><div class="prog-bar-fill" id="consFill" style="width:0%"></div></div></div></div>
+      <div class="prog-card prog-card-full"><div class="prog-label">This Week Activity</div><div class="week-chart" id="weekChart"></div></div>
+      <div class="prog-card prog-card-full"><div class="prog-label">Personal Records 🏆</div><div class="pr-list" id="prList"><div style="color:var(--muted);font-size:0.85rem;">No PRs yet — start logging!</div></div></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+</div><!-- /mainApp -->
+
+<!-- Edit Exercise Modal -->
+<div class="modal-overlay" id="editExModal">
+  <div class="modal">
+    <div class="modal-title">EDIT EXERCISE</div>
+    <input class="modal-input" id="editExName" placeholder="Exercise name">
+    <input class="modal-input" id="editExMuscle" placeholder="Target muscle">
+    <div class="modal-row">
+      <button class="modal-cancel" onclick="closeModal('editExModal')">Cancel</button>
+      <button class="modal-save" onclick="saveEditEx()">Save ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Session Saved! 💪</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FIREBASE MODULAR SDK v12  (type="module" — matches what Firebase
+     gave you in the console)
+     ═══════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }                          from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAuth, onAuthStateChanged,
+         GoogleAuthProvider, signInWithPopup,
+         signInWithEmailAndPassword,
+         createUserWithEmailAndPassword,
+         signOut as fbSignOut }                   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, collection, doc,
+         addDoc, getDocs, deleteDoc,
+         writeBatch, setDoc,
+         query, orderBy }                         from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+// ── YOUR FIREBASE CONFIG (filled in from the console) ─────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyBcGRxHhY1bYp9pmhfZA46h-p5_ACckFq4",
+  authDomain:        "iron-log-274f1.firebaseapp.com",
+  projectId:         "iron-log-274f1",
+  storageBucket:     "iron-log-274f1.firebasestorage.app",
+  messagingSenderId: "1074452173873",
+  appId:             "1:1074452173873:web:4b66c40b7a27b32c9a7110"
+};
+
+// ── Initialize ─────────────────────────────────────────────────────────
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);        // Authentication service
+const db   = getFirestore(app);   // Firestore database service
+
+// ── Firestore helpers — scoped to the logged-in user ──────────────────
+//  Data structure:  users/{uid}/sessions/{docId}
+//                   users/{uid}/prs/{exerciseKey}
+const sessionsCol = (uid) => collection(db, 'users', uid, 'sessions');
+const prsCol      = (uid) => collection(db, 'users', uid, 'prs');
+
+// ── In-memory cache (avoids re-fetching on every render) ──────────────
+let cachedSessions = [];
+let cachedPRs      = {};
+
+// ── Auth state — fires on login AND logout ─────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display     = 'block';
+
+    document.getElementById('userName').textContent = user.displayName || user.email;
+    const avatarEl = document.getElementById('userAvatar');
+    if (user.photoURL) {
+      avatarEl.innerHTML = `<img src="${user.photoURL}" alt="avatar">`;
+    } else {
+      avatarEl.textContent = (user.displayName || user.email || 'U')[0].toUpperCase();
+    }
+
+    showLoading(true);
+    await loadSessionsFromFirestore(user.uid);
+    showLoading(false);
+
+    setTodayDate();
+    loadTemplate('push');
+    renderQuickBtns();
+    updateHeaderStats();
+
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display     = 'none';
+    cachedSessions = [];
+    cachedPRs      = {};
+  }
+});
+
+// ── READ: load sessions + PRs from Firestore ──────────────────────────
+async function loadSessionsFromFirestore(uid) {
+  setSyncState('syncing');
+  try {
+    const q        = query(sessionsCol(uid), orderBy('date', 'desc'));
+    const snap     = await getDocs(q);
+    cachedSessions = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+
+    const prSnap = await getDocs(prsCol(uid));
+    cachedPRs = {};
+    prSnap.docs.forEach(d => { cachedPRs[d.id] = d.data(); });
+
+    setSyncState('ok');
+  } catch (err) {
+    console.error('Firestore load error:', err);
+    setSyncState('error');
+  }
+}
+
+// ── WRITE: add a session document ─────────────────────────────────────
+async function writeSessionToFirestore(entry) {
+  setSyncState('syncing');
+  try {
+    const ref = await addDoc(sessionsCol(auth.currentUser.uid), entry);
+    entry.firestoreId = ref.id;
+    setSyncState('ok');
+    return entry;
+  } catch (err) {
+    console.error('Firestore write error:', err);
+    setSyncState('error');
+    showToast('⚠️ Save failed — check connection');
+    return null;
+  }
+}
+
+// ── DELETE: remove a session document ─────────────────────────────────
+async function deleteSessionFromFirestore(firestoreId) {
+  setSyncState('syncing');
+  try {
+    await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'sessions', firestoreId));
+    setSyncState('ok');
+  } catch (err) {
+    console.error('Firestore delete error:', err);
+    setSyncState('error');
+  }
+}
+
+// ── WRITE PRs: batch-write all PR docs at once ────────────────────────
+async function writePRsToFirestore(prs) {
+  const uid   = auth.currentUser.uid;
+  const batch = writeBatch(db);
+  Object.entries(prs).forEach(([key, val]) => {
+    batch.set(doc(db, 'users', uid, 'prs', key), val, { merge: true });
+  });
+  try { await batch.commit(); }
+  catch (err) { console.error('PR write error:', err); }
+}
+
+// ── AUTH functions (called from onclick in HTML) ───────────────────────
+// Because this is a module, we expose them on window so inline onclick works
+window.signInWithGoogle = async () => {
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (err) { showLoginError(err.message); }
+};
+
+window.signInWithEmail = async () => {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) return showLoginError('Please fill in email and password.');
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) { showLoginError(friendlyAuthError(err.code)); }
+};
+
+window.signUpWithEmail = async () => {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) return showLoginError('Please fill in email and password.');
+  if (password.length < 6)  return showLoginError('Password must be at least 6 characters.');
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+  } catch (err) { showLoginError(friendlyAuthError(err.code)); }
+};
+
+window.signOut = async () => { await fbSignOut(auth); };
+
+function friendlyAuthError(code) {
+  const map = {
+    'auth/user-not-found':    'No account found with that email.',
+    'auth/wrong-password':    'Incorrect password.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/invalid-email':     'Please enter a valid email address.',
+    'auth/too-many-requests': 'Too many attempts. Please try again later.',
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
+function showLoginError(msg) {
+  document.getElementById('loginError').textContent = msg;
+}
+
+// ── Sync dot ──────────────────────────────────────────────────────────
+function setSyncState(state) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  APP LOGIC
+// ══════════════════════════════════════════════════════════════════════
+
+const TEMPLATES = {
+  push: [
+    {name:'Flat Bench Press',muscle:'Chest'},{name:'Incline DB Press',muscle:'Chest'},
+    {name:'Cable Fly',muscle:'Chest'},{name:'OHP',muscle:'Shoulders'},
+    {name:'Lateral Raises',muscle:'Shoulders'},{name:'Tricep Pushdown',muscle:'Triceps'},
+    {name:'Overhead Tricep Ext',muscle:'Triceps'},
+  ],
+  pull: [
+    {name:'Deadlift',muscle:'Back'},{name:'Bent Over Row',muscle:'Back'},
+    {name:'Lat Pulldown',muscle:'Back'},{name:'Seated Cable Row',muscle:'Back'},
+    {name:'Face Pulls',muscle:'Rear Delt'},{name:'Barbell Curl',muscle:'Biceps'},
+    {name:'Hammer Curl',muscle:'Biceps'},
+  ],
+  legs: [
+    {name:'Barbell Squat',muscle:'Quads'},{name:'Leg Press',muscle:'Quads'},
+    {name:'Leg Extension',muscle:'Quads'},{name:'Romanian Deadlift',muscle:'Hamstrings'},
+    {name:'Leg Curl',muscle:'Hamstrings'},{name:'Standing Calf Raise',muscle:'Calves'},
+    {name:'Plank',muscle:'Core'},
+  ],
+  upper: [
+    {name:'Bench Press',muscle:'Chest'},{name:'Bent Over Row',muscle:'Back'},
+    {name:'OHP',muscle:'Shoulders'},{name:'Pull Ups',muscle:'Back'},
+    {name:'Lateral Raises',muscle:'Shoulders'},{name:'Barbell Curl',muscle:'Biceps'},
+    {name:'Tricep Pushdown',muscle:'Triceps'},
+  ],
+  lower: [
+    {name:'Squat',muscle:'Quads'},{name:'Romanian Deadlift',muscle:'Hamstrings'},
+    {name:'Leg Curl',muscle:'Hamstrings'},{name:'Hip Thrust',muscle:'Glutes'},
+    {name:'Calf Raise',muscle:'Calves'},{name:'Cable Crunch',muscle:'Core'},
+    {name:'Hanging Leg Raise',muscle:'Core'},
+  ],
+  custom: []
+};
+
+let currentSession = {type:'push', exercises:[], notes:''};
+let editingExIdx   = null;
+
+function showLoading(show) {
+  document.getElementById('loadingOverlay').classList.toggle('show', show);
+}
+
+function setTodayDate() {
+  const now    = new Date();
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('todayDay').textContent   = days[now.getDay()];
+  document.getElementById('todayDate').textContent  = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('todayBadge').textContent = `Day ${cachedSessions.length + 1}`;
+}
+
+// Expose tab/session/exercise functions to window (required for module scripts + inline onclick)
+window.switchTab = function(tab, e) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`view-${tab}`).classList.add('active');
+  if (e && e.target) e.target.classList.add('active');
+  if (tab === 'history') renderHistory();
+  if (tab === 'progress') renderProgress();
+};
+
+window.selectSession = function(type, el) {
+  document.querySelectorAll('.sess-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentSession.type = type;
+  if (type !== 'custom') loadTemplate(type);
+};
+
+function loadTemplate(type) {
+  const tpl = TEMPLATES[type] || [];
+  currentSession.exercises = tpl.map(ex => ({
+    name:ex.name, muscle:ex.muscle,
+    sets:[{weight:'',reps:'',done:false},{weight:'',reps:'',done:false},{weight:'',reps:'',done:false}]
+  }));
+  renderExercises();
+}
+
+function renderQuickBtns() {
+  document.getElementById('quickBtns').innerHTML =
+    ['push','pull','legs','upper','lower'].map(t =>
+      `<button class="quick-btn" onclick="quickLoad('${t}')">${t.toUpperCase()}</button>`
+    ).join('');
+}
+
+window.quickLoad = function(type) {
+  document.querySelectorAll('.sess-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+  currentSession.type = type;
+  loadTemplate(type);
+};
+
+function renderExercises() {
+  const list = document.getElementById('exercisesList');
+  list.innerHTML = '';
+  currentSession.exercises.forEach((ex, ei) => {
+    const card = document.createElement('div');
+    card.className = 'ex-card';
+    card.innerHTML = `
+      <div class="ex-header">
+        <div class="ex-name-wrap">
+          <div class="ex-num">${ei+1}</div>
+          <div><div class="ex-name">${ex.name}</div><div class="ex-muscle">${ex.muscle}</div></div>
+        </div>
+        <div class="ex-actions">
+          <button class="ex-btn" onclick="openEditEx(${ei})">✏️</button>
+          <button class="ex-btn del" onclick="deleteExercise(${ei})">🗑</button>
+        </div>
+      </div>
+      <div class="sets-wrap">
+        <table class="sets-table">
+          <thead><tr><th style="width:30px">SET</th><th>KG</th><th>REPS</th><th>✓</th><th></th></tr></thead>
+          <tbody id="setsbody_${ei}"></tbody>
+        </table>
+        <button class="add-set-btn" onclick="addSet(${ei})">+ Add Set</button>
+      </div>`;
+    list.appendChild(card);
+    renderSets(ei);
+  });
+}
+
+function renderSets(ei) {
+  const tbody = document.getElementById(`setsbody_${ei}`);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  currentSession.exercises[ei].sets.forEach((set, si) => {
+    const tr = document.createElement('tr');
+    tr.className = `set-row${set.done?' completed':''}`;
+    tr.innerHTML = `
+      <td class="set-num">${si+1}</td>
+      <td><input class="set-input" type="number" placeholder="kg" value="${set.weight}" oninput="updateSet(${ei},${si},'weight',this.value)" style="width:70px;"></td>
+      <td><input class="set-input" type="number" placeholder="reps" value="${set.reps}" oninput="updateSet(${ei},${si},'reps',this.value)" style="width:70px;"></td>
+      <td><button class="set-done-btn${set.done?' done':''}" onclick="toggleSetDone(${ei},${si})">${set.done?'✓':'○'}</button></td>
+      <td><button class="del-set-btn" onclick="deleteSet(${ei},${si})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+window.updateSet      = (ei,si,f,v) => { currentSession.exercises[ei].sets[si][f]=v; };
+window.toggleSetDone  = (ei,si)     => { currentSession.exercises[ei].sets[si].done=!currentSession.exercises[ei].sets[si].done; renderSets(ei); };
+window.addSet         = (ei)        => { currentSession.exercises[ei].sets.push({weight:'',reps:'',done:false}); renderSets(ei); };
+window.deleteSet      = (ei,si)     => { if(currentSession.exercises[ei].sets.length<=1)return; currentSession.exercises[ei].sets.splice(si,1); renderSets(ei); };
+window.deleteExercise = (ei)        => { currentSession.exercises.splice(ei,1); renderExercises(); };
+
+window.addExercise = function() {
+  const name   = document.getElementById('newExName').value.trim();
+  const muscle = document.getElementById('newExMuscle').value.trim() || 'General';
+  if (!name) return;
+  currentSession.exercises.push({name, muscle, sets:[{weight:'',reps:'',done:false},{weight:'',reps:'',done:false},{weight:'',reps:'',done:false}]});
+  document.getElementById('newExName').value   = '';
+  document.getElementById('newExMuscle').value = '';
+  renderExercises();
+  setTimeout(() => document.getElementById('exercisesList').lastChild?.scrollIntoView({behavior:'smooth'}), 100);
+};
+
+window.openEditEx = function(ei) {
+  editingExIdx = ei;
+  document.getElementById('editExName').value   = currentSession.exercises[ei].name;
+  document.getElementById('editExMuscle').value = currentSession.exercises[ei].muscle;
+  document.getElementById('editExModal').classList.add('open');
+};
+window.saveEditEx = function() {
+  if (editingExIdx === null) return;
+  currentSession.exercises[editingExIdx].name   = document.getElementById('editExName').value.trim()   || currentSession.exercises[editingExIdx].name;
+  currentSession.exercises[editingExIdx].muscle = document.getElementById('editExMuscle').value.trim() || currentSession.exercises[editingExIdx].muscle;
+  closeModal('editExModal');
+  renderExercises();
+};
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+// ── Save session → Firestore ──────────────────────────────────────────
+window.saveSession = async function() {
+  const notes = document.getElementById('sessionNotes').value.trim();
+  const now   = new Date();
+  const entry = {
+    id:        Date.now(),
+    date:      now.toISOString(),
+    dateStr:   now.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),
+    dayName:   ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()],
+    type:      currentSession.type,
+    exercises: JSON.parse(JSON.stringify(currentSession.exercises)),
+    notes,
+  };
+  let vol = 0;
+  entry.exercises.forEach(ex => ex.sets.forEach(s => {
+    if (s.weight && s.reps) vol += parseFloat(s.weight) * parseInt(s.reps);
+  }));
+  entry.volume = Math.round(vol);
+
+  showLoading(true);
+  const saved = await writeSessionToFirestore(entry);
+  if (saved) {
+    cachedSessions.unshift(saved);
+    await updatePRsFromSession(saved);
+    updateHeaderStats();
+    showToast('Session Saved! 💪');
+    document.getElementById('sessionNotes').value = '';
+    setTodayDate();
+  }
+  showLoading(false);
+};
+
+async function updatePRsFromSession(session) {
+  session.exercises.forEach(ex => {
+    ex.sets.forEach(s => {
+      if (!s.weight || !s.reps) return;
+      const w   = parseFloat(s.weight);
+      const key = ex.name.toLowerCase().replace(/\s+/g,'_');
+      if (!cachedPRs[key] || w > cachedPRs[key].weight) {
+        cachedPRs[key] = {name:ex.name, weight:w, reps:parseInt(s.reps), date:session.dateStr};
+      }
+    });
+  });
+  await writePRsToFirestore(cachedPRs);
+}
+
+function updateHeaderStats() {
+  document.getElementById('totalSessions').textContent = cachedSessions.length;
+  document.getElementById('totalWeeks').textContent    = cachedSessions.length > 0 ? Math.ceil(cachedSessions.length / 6) : 0;
+  document.getElementById('totalPRs').textContent      = Object.keys(cachedPRs).length;
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (cachedSessions.length === 0) {
+    list.innerHTML = `<div class="history-empty"><div class="em-icon">📋</div><p>No sessions logged yet.<br>Start logging your workouts!</p></div>`;
+    return;
+  }
+  list.innerHTML = cachedSessions.map((s,i) => {
+    const typeColors    = {push:'badge-push',pull:'badge-pull',legs:'badge-legs',custom:'badge-custom',upper:'badge-push',lower:'badge-legs'};
+    const completedSets = s.exercises.reduce((a,ex)=>a+ex.sets.filter(st=>st.done).length,0);
+    const totalSets     = s.exercises.reduce((a,ex)=>a+ex.sets.length,0);
+    return `
+    <div class="log-card">
+      <div class="log-card-header" onclick="toggleLogExpand(${i})">
+        <div class="log-left">
+          <div class="log-date">${s.dateStr}</div>
+          <div class="log-day">${s.dayName} — ${s.exercises.length} exercises</div>
+        </div>
+        <div class="log-right">
+          <div class="log-type-badge ${typeColors[s.type]||'badge-custom'}">${s.type.toUpperCase()}</div>
+          <button class="log-del-btn" onclick="deleteSession('${s.firestoreId}',${i},event)">🗑</button>
+        </div>
+      </div>
+      <div class="log-meta">
+        <div class="log-meta-item">Volume: <span>${s.volume||0}kg</span></div>
+        <div class="log-meta-item">Sets: <span>${completedSets}/${totalSets}</span></div>
+        <div class="log-meta-item">Exercises: <span>${s.exercises.length}</span></div>
+      </div>
+      <div class="log-exercises" id="logex_${i}">
+        ${s.exercises.map(ex=>`
+          <div class="log-ex-row">
+            <div><div class="log-ex-name">${ex.name}</div><div class="log-ex-muscle">${ex.muscle}</div></div>
+            <div class="log-sets-summary">
+              ${ex.sets.map((st,si)=>`<div class="log-set-line">Set ${si+1}: <span>${st.weight||'—'}kg × ${st.reps||'—'}</span></div>`).join('')}
+            </div>
+          </div>`).join('')}
+        ${s.notes?`<div class="log-notes-display">📝 ${s.notes}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleLogExpand = (i) => document.getElementById(`logex_${i}`)?.classList.toggle('open');
+
+window.deleteSession = async function(firestoreId, idx, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this session?')) return;
+  showLoading(true);
+  await deleteSessionFromFirestore(firestoreId);
+  cachedSessions.splice(idx, 1);
+  updateHeaderStats();
+  renderHistory();
+  showLoading(false);
+};
+
+function renderProgress() {
+  const sessions = cachedSessions;
+  document.getElementById('pTotalSessions').textContent = sessions.length;
+  const now       = new Date();
+  const weekStart = new Date(now); weekStart.setDate(now.getDate()-now.getDay());
+  const weekSessions = sessions.filter(s=>new Date(s.date)>=weekStart);
+  document.getElementById('pWeekSessions').textContent = weekSessions.length;
+  const totalVol = sessions.reduce((a,s)=>a+(s.volume||0),0);
+  document.getElementById('pTotalVolume').textContent = totalVol>1000?(totalVol/1000).toFixed(1)+'k':totalVol;
+  const fourWeeksAgo = new Date(now); fourWeeksAgo.setDate(now.getDate()-28);
+  const recentSessions = sessions.filter(s=>new Date(s.date)>=fourWeeksAgo).length;
+  const consistency = Math.min(100,Math.round((recentSessions/24)*100));
+  document.getElementById('pConsistency').textContent = consistency+'%';
+  document.getElementById('consFill').style.width     = consistency+'%';
+  const days      = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const weekChart = document.getElementById('weekChart');
+  const weekCounts = new Array(7).fill(0);
+  weekSessions.forEach(s=>{ const d=new Date(s.date).getDay(); weekCounts[d]++; });
+  const maxCount = Math.max(...weekCounts,1);
+  weekChart.innerHTML = days.map((d,i)=>`
+    <div class="week-bar-wrap">
+      <div class="week-val-label">${weekCounts[i]||''}</div>
+      <div class="week-bar${weekCounts[i]>0?' active':''}" style="height:${Math.max(8,(weekCounts[i]/maxCount)*60)}px"></div>
+      <div class="week-day-label">${d}</div>
+    </div>`).join('');
+  const prEntries = Object.values(cachedPRs);
+  const prList    = document.getElementById('prList');
+  prList.innerHTML = prEntries.length === 0
+    ? '<div style="color:var(--muted);font-size:0.85rem;">No PRs yet — start logging!</div>'
+    : prEntries.sort((a,b)=>b.weight-a.weight).map(pr=>`
+        <div class="pr-item">
+          <div><div class="pr-name">${pr.name}</div><div style="font-size:0.72rem;color:var(--muted2);">${pr.date} · ${pr.reps} reps</div></div>
+          <div class="pr-val">${pr.weight}kg</div>
+        </div>`).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
+});
+
+</script>
+</body>
+</html>
